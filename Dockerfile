@@ -6,4 +6,4 @@ USER node
 COPY ../../app/package*.json /home/node/app
 RUN npm install --force --loglevel verbose
 COPY ./app/src /home/node/app/src
-CMD [ "node", "./src/index.js" ]
+CMD [ "npm", "run", "dev" ]
