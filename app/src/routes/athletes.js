@@ -1,30 +1,31 @@
 import Express from 'express';
-import axios from 'axios';
+import { parseXML } from '../utils/parser-xml.js';
 
 const athletesRouter = Express.Router();
 
 athletesRouter.get('/', async (req, res) => {
     const { teamid } = req.query;
+    if(!teamid){
+        return res.status(400).end();
+    }
 
     try {
         const userId = req.session.userId;
-        const idToUse = teamid || userId;
-        const cookieValue = req.session.cookieValue;
+        const cookie = req.session.cookie;
 
         if (!cookieValue) {
             return res.status(401).json({ message: 'Usuário não autenticado' });
         }
 
-        const response = await axios.get(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
-            params: { teamid: idToUse },
+        const response = await fetch.get(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
+            body: { teamid: teamid || userId },
             headers: {
-                Cookie: cookieValue
+                Cookie: cookie
             },
-            withCredentials: true,
+            credentials: 'include',
         });
 
-        const jsonResponse = await parseXML(response.data);
-
+        const jsonResponse = await parseXML(await response.text());
         if (jsonResponse['maxi-xml'].error) {
             return res.status(400).json({ message: jsonResponse['maxi-xml'].error });
         }

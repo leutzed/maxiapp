@@ -1,5 +1,5 @@
 import Express from 'express';
-import axios from 'axios';
+import { parseXML } from '../utils/parser-xml.js';
 
 const authRouter = Express.Router();
 
@@ -11,13 +11,13 @@ authRouter.post('/', async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`http://www.maxithlon.com/maxi-xml/login.php`, {
+        const response = await fetch(`http://www.maxithlon.com/maxi-xml/login.php`, {
+            method: 'GET',
             params: { user, scode },
-            withCredentials: true,
+            credentials: 'include'
         });
 
-        const jsonResponse = await parseXML(response.data);
-
+        const jsonResponse = await parseXML(await response.text());
         if (jsonResponse['maxi-xml'].error) {
             return res.status(401).json({ message: jsonResponse['maxi-xml'].error });
         }
@@ -30,6 +30,7 @@ authRouter.post('/', async (req, res) => {
 
         return res.json({ message: jsonResponse['maxi-xml'].login });
     } catch (error) {
+        console.log(error.message);
         return res.status(500).json({ error: 'Erro ao realizar login' });
     }
 });
