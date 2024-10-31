@@ -9,9 +9,11 @@ export default class AuthController {
         }
 
         try {
-            const response = await fetch(`http://www.maxithlon.com/maxi-xml/login.php`, {
+            const authUrl = new URL(`http://www.maxithlon.com/maxi-xml/login.php`);
+            authUrl.searchParams.append('user', user);
+            authUrl.searchParams.append('scode', scode);
+            const response = await fetch(authUrl, {
                 method: 'GET',
-                params: { user, scode },
                 credentials: 'include'
             });
 
@@ -21,9 +23,9 @@ export default class AuthController {
             }
 
             req.session.userId = user;
-            const setCookieHeader = response.headers['set-cookie'];
-            if (setCookieHeader) {
-                req.session.cookieValue = setCookieHeader[0];
+            const maxiCookie = response.headers.get('set-cookie');
+            if (maxiCookie) {
+                req.session.maxiCookie = maxiCookie;
             }
 
             return res.json({ message: jsonResponse['maxi-xml'].login });

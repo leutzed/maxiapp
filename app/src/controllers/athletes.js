@@ -2,23 +2,15 @@ import { parseXML } from '../utils/parser-xml.js';
 
 export default class AthletesController {
     async findByTeamId(req, res) {
-        const { teamid } = req.query;
-        if(!teamid){
-            return res.status(400).end();
-        }
+        const { teamId } = req.query;
 
         try {
             const userId = req.session.userId;
-            const cookie = req.session.cookie;
-
-            if (!cookieValue) {
-                return res.status(401).json({ message: 'Usuário não autenticado' });
-            }
-
-            const response = await fetch.get(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
-                body: { teamid: teamid || userId },
+            const response = await fetch(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
+                method: "POST",
+                body: { teamid: teamId || userId },
                 headers: {
-                    Cookie: cookie
+                    Cookie: req.session.maxiCookie
                 },
                 credentials: 'include',
             });
@@ -28,9 +20,9 @@ export default class AthletesController {
                 return res.status(400).json({ message: jsonResponse['maxi-xml'].error });
             }
 
-            console.log(jsonResponse['maxi-xml'].athlete);
             return res.json(jsonResponse['maxi-xml'].athlete);
         } catch (error) {
+            console.log(error.message);
             return res.status(500).json({ error: 'Erro ao obter detalhes dos atletas' });
         }
     }
