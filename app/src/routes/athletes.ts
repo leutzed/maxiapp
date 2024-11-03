@@ -1,6 +1,7 @@
 import Express from 'express';
-import AthletesController from '../controllers/athletes.js';
-import { isAuthenticated } from '../middlewares/auth.js';
+
+import AthletesController from '../controllers/athletes.ts';
+import { isAuthenticated } from '../middlewares/auth.ts';
 
 const athletesRouter = Express.Router();
 const controller = new AthletesController();
