@@ -13,7 +13,10 @@ class App {
     }
 
     private config(): void {
-        this.app.use(cors());
+        this.app.use(cors({
+            origin: 'http://localhost:3001',
+            credentials: true
+        }));
 
         this.app.use(Express.json());
         this.app.use(session({
