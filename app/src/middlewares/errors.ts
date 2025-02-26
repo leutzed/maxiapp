@@ -5,17 +5,20 @@ export const errorHandler = (err: Error, _: Request, res: Response, __: NextFunc
     if(err instanceof CustomError) {
         const { statusCode, errors, logging } = err;
         if(logging) {
-            console.log(JSON.stringify({
+            // Using structured error logging
+            const errorLog = {
                 code: err.statusCode,
                 errors: err.errors,
                 stack: err.stack
-            }, null, 2));
+            };
+            process.env.NODE_ENV !== 'production' && console.error(errorLog);
         }
 
         res.status(statusCode).send({ errors });
         return;
     }
 
-    console.log(JSON.stringify(err, null, 2));
+    // Only log internal errors in non-production
+    process.env.NODE_ENV !== 'production' && console.error(err);
     res.status(500).send({ errors: [{ message: "Something went wrong" }] });
 }

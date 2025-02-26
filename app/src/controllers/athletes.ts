@@ -13,7 +13,7 @@ export default class AthletesController {
             const body = {
                 teamId: teamId || req.session.userId
             }
-            console.log(body);
+
             const response = await fetch(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
                 method: "POST",
                 body: JSON.stringify(body),
@@ -24,8 +24,7 @@ export default class AthletesController {
             });
 
             const jsonResponse = await parseXML(await response.text());
-            console.log(jsonResponse);
-            // TODO: Create this interface
+
             if (jsonResponse['maxi-xml'].error) {
                 res.status(400).json({ message: jsonResponse['maxi-xml'].error });
                 return;
