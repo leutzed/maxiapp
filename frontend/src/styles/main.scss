@@ -1,0 +1,17 @@
+/* Import component styles using @use - must be at the top of file */
+@use 'login';
+@use 'athletes';
+
+/* Reset and global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f9f9f9;
+}
