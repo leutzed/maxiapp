@@ -14,7 +14,7 @@ export default class AuthController {
             return;
         }
 
-        const authUrl = new URL(`http://www.maxithlon.com/maxi-xml/login.php`);
+        const authUrl = new URL(`https://www.maxithlon.com/maxi-xml/login.php`);
         authUrl.searchParams.append('user', user);
         authUrl.searchParams.append('scode', scode);
 

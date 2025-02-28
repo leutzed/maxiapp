@@ -7,21 +7,24 @@ export default class AthletesController {
 
         try {
             const headers = new Headers();
+            console.log('cu aqui', req.session.maxiCookie);
             headers.set('cookie', req.session.maxiCookie || '');
 
             // TODO: Create a generic structure for API calls
-            const body = {
-                teamId: teamId || req.session.userId
-            }
-            console.log(body);
-            const response = await fetch(`http://www.maxithlon.com/maxi-xml/athletes.php`, {
+            // const body = {
+            //     teamId: teamId || req.session.userId
+            // }
+            // console.log(body);
+            const response = await fetch(`https://www.maxithlon.com/maxi-xml/athletes.php`, {
                 method: "POST",
-                body: JSON.stringify(body),
+                // body: JSON.stringify(body),
                 headers: {
                     Cookie: req.session.maxiCookie || ''
                 },
                 credentials: 'include',
             });
+
+            console.log(req.session);
 
             const jsonResponse = await parseXML(await response.text());
             console.log(jsonResponse);
