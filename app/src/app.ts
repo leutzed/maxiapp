@@ -14,7 +14,6 @@ class App {
 
     private config(): void {
         this.app.use(cors());
-
         this.app.use(Express.json());
         this.app.use(session({
             secret: 'empty',
@@ -24,10 +23,8 @@ class App {
         }));
 
         (new Routes()).setRoutes(this.app);
-
         this.app.use(errorHandler);
     }
 }
-
 
 export default new App().app;

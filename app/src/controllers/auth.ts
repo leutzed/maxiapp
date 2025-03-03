@@ -1,8 +1,8 @@
 import * as express from 'express';
 
-import AuthBody from '../interfaces/auth.js';
-import { parseXML } from '../utils/parser-xml.js';
-import UnauthorizedError from '../errors/UnauthorizedError.js';
+import AuthBody from '../interfaces/auth.ts';
+import { parseXML } from '../utils/parser-xml.ts';
+import UnauthorizedError from '../errors/UnauthorizedError.ts';
 
 export default class AuthController {
     async auth(req: express.Request, res: express.Response): Promise<void> {

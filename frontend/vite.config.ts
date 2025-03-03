@@ -14,10 +14,18 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true
       },
+      '/athlete': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      },
       '/healthcheck': {
         target: 'http://localhost:3000',
         changeOrigin: true
       }
-    }
+    },
+    watch: {
+      usePolling: true,
+      interval: 1000, // You can adjust polling interval as needed (in milliseconds)
+    },
   }
 })

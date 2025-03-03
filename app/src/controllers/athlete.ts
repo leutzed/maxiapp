@@ -2,14 +2,21 @@ import { Request, Response } from 'express';
 import { parseXML } from '../utils/parser-xml.ts';
 import MaxiResponse from '../interfaces/maxiResponse.ts';
 
-export default class AthletesController {
-    async findByTeamId(req: Request, res: Response): Promise<void> {
+export default class AthleteController {
+    async findAthleteById(req: Request, res: Response): Promise<void> {
+        const { athleteId } = req.params;
+
         try {
+            if (!athleteId) {
+                res.status(400).json({ message: 'athleteId é obrigatório' });
+                return;
+            }
+
             const headers = new Headers();
             headers.set('cookie', req.session.maxiCookie || '');
 
-            const response = await fetch(`https://www.maxithlon.com/maxi-xml/athletes.php`, {
-                method: "POST",
+            const response = await fetch(`https://www.maxithlon.com/maxi-xml/athlete.php?athleteid=${athleteId}`, {
+                method: "GET",
                 headers: {
                     Cookie: req.session.maxiCookie || ''
                 },
@@ -17,16 +24,18 @@ export default class AthletesController {
             });
 
             const jsonResponse = await parseXML<MaxiResponse>(await response.text());
-            // TODO: Create this interface
+
+            console.log(jsonResponse);
+            
             if (jsonResponse['maxi-xml'].error) {
                 res.status(400).json({ message: jsonResponse['maxi-xml'].error });
                 return;
             }
 
-            res.json(jsonResponse['maxi-xml'].athlete);
+            res.json(jsonResponse['maxi-xml']);
             return;
         } catch (err) {
-            throw new Error();
+            res.status(500).json({ message: 'Erro ao buscar dados do atleta' });
         }
     }
 }

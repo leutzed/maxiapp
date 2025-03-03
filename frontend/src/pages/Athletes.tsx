@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../styles/athletes.scss';
 
 interface Athlete {
-  id: string;
+  athleteId: string;
   name: string;
   age: number;
   position: string;
   team: string;
+  specialtyId: {
+    _: string;
+  };
 }
 
 const Athletes = () => {
@@ -18,6 +21,7 @@ const Athletes = () => {
   const [error, setError] = useState('');
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -26,9 +30,15 @@ const Athletes = () => {
     }
 
     const fetchAthletes = async () => {
+      // Evita chamadas duplicadas na mesma montagem do componente
+      if (fetchedRef.current) return;
+      fetchedRef.current = true;
+
       try {
-        const response = await axios.get('/athletes');
+        const response = await axios.get('/athletes', { headers: { 'Cache-Control': 'no-cache' } });
         setAthletes(response.data);
+        console.log(response);
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching athletes:', err);
@@ -45,7 +55,24 @@ const Athletes = () => {
     navigate('/login');
   };
 
+  const groupAthletesBySpecialty = () => {
+    const grouped: { [key: string]: Athlete[] } = {};
+    
+    if (athletes && athletes.length > 0) {
+      athletes.forEach((athlete) => {
+        const specialty = athlete.specialtyId?._ || 'Unknown';
+        if (!grouped[specialty]) {
+          grouped[specialty] = [];
+        }
+        grouped[specialty].push(athlete);
+      });
+    }
+    
+    return grouped;
+  };
+
   if (loading) return <div className="loading">Loading...</div>;
+  const athletesBySpecialty = groupAthletesBySpecialty();
 
   return (
     <div className="athletes-container">
@@ -55,23 +82,39 @@ const Athletes = () => {
           Logout
         </button>
       </div>
-
       {error && <div className="error-message">{error}</div>}
       
-      <div className="athletes-list">
-        {athletes.length > 0 ? (
-          athletes.map((athlete) => (
-            <div key={athlete.id} className="athlete-card">
-              <h3>{athlete.name}</h3>
-              <p><strong>Age:</strong> {athlete.age}</p>
-              <p><strong>Position:</strong> {athlete.position}</p>
-              <p><strong>Team:</strong> {athlete.team}</p>
-            </div>
-          ))
-        ) : (
-          <p>No athletes found.</p>
-        )}
-      </div>
+      {Object.keys(athletesBySpecialty).length > 0 ? (
+        Object.entries(athletesBySpecialty).map(([specialty, specialtyAthletes]) => (
+          <div key={specialty} className="specialty-table-container">
+            <h2 className="specialty-title">Especialidade: {specialty}</h2>
+            <table className="athletes-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Idade</th>
+                  <th>Posição</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {specialtyAthletes.map((athlete) => (
+                  <tr key={athlete.athleteId} className="athlete-row">
+                    <td>
+                      <Link to={`/athlete/${athlete.athleteId}`}>{athlete.name}</Link>
+                    </td>
+                    <td>{athlete.age}</td>
+                    <td>{athlete.position}</td>
+                    <td>{athlete.team}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
+      ) : (
+        <p>No athletes found.</p>
+      )}
     </div>
   );
 };

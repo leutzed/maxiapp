@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx tsx watch ./src/server.ts",
+    "dev:nodemon": "nodemon --exec \"npx tsx\" ./src/server.ts",
     "start": "node --env-file=./.env ./src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -35,7 +36,9 @@
     "@types/express-session": "^1.18.0",
     "@types/node": "22.8.6",
     "@types/xml2js": "^0.4.14",
+    "nodemon": "^3.1.0",
     "ts-node": "10.9.2",
     "tsx": "4.19.2"
   }
 }
+
