@@ -6,6 +6,7 @@ import { isAuthenticated } from '../middlewares/auth.ts';
 const athletesRouter = Express.Router();
 const controller = new AthletesController();
 
-athletesRouter.get('/', isAuthenticated, controller.findByTeamId);
+athletesRouter.get('/', isAuthenticated, controller.findAll);
+athletesRouter.get('/:id', isAuthenticated, controller.findAthleteById);
 
 export default athletesRouter;
