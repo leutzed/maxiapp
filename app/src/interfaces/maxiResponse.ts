@@ -1,6 +1,8 @@
+import { Athlete } from './athlete';
+
 export default interface MaxiResponse {
     'maxi-xml': {
         error?: string;
-        athlete: any;
+        athlete: Athlete | Athlete[];
     };
 }

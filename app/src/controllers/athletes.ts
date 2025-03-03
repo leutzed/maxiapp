@@ -17,16 +17,22 @@ export default class AthletesController {
             });
 
             const jsonResponse = await parseXML<MaxiResponse>(await response.text());
-            // TODO: Create this interface
+            
             if (jsonResponse['maxi-xml'].error) {
                 res.status(400).json({ message: jsonResponse['maxi-xml'].error });
                 return;
             }
 
-            res.json(jsonResponse['maxi-xml'].athlete);
+            // Ensure we're returning an array even if there's only one athlete
+            const athletes = Array.isArray(jsonResponse['maxi-xml'].athlete) 
+                ? jsonResponse['maxi-xml'].athlete 
+                : jsonResponse['maxi-xml'].athlete ? [jsonResponse['maxi-xml'].athlete] : [];
+            
+            res.json(athletes);
             return;
         } catch (err) {
-            throw new Error();
+            console.error('Error in findByTeamId:', err);
+            res.status(500).json({ message: 'Error fetching athletes data' });
         }
     }
 }

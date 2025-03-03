@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, ReactNode } from 'react';
 import axios from 'axios';
+import { fetchCalendar, storeCalendarData } from '../services/calendarService';
 
 interface User {
   id: string;
@@ -32,11 +33,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.getItem('token')
   );
 
+  const updateCalendarData = async () => {
+    try {
+      const calendarData = await fetchCalendar();
+      storeCalendarData(calendarData);
+      console.log('Calendar data updated successfully', {
+        season: calendarData.season,
+        week: calendarData.currentWeek,
+        date: calendarData.currentDate
+      });
+    } catch (error) {
+      console.error('Failed to update calendar data:', error);
+    }
+  };
+
   const login = async (username: string, password: string) => {
     try {
       const response = await axios.post('/auth', { 
-        user: username, // Changed from username to user
-        scode: password // Changed from password to scode
+        user: username,
+        scode: password
       });
       
       // Extract data from response
@@ -53,6 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // The backend doesn't return a token but sets a session cookie instead
       // So we'll set a flag to indicate the user is logged in
       localStorage.setItem('isAuthenticated', 'true');
+
+      // Fetch and store calendar data after successful login
+      await updateCalendarData();
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -62,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('calendarData'); // Clear calendar data on logout
     setUser(null);
     setToken(null);
   };

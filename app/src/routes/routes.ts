@@ -4,6 +4,7 @@ import athletesRouter from './athletes.ts';
 import athleteRouter from './athlete.ts';
 import healthcheckRouter from './healthcheck.ts';
 import authRouter from './auth.ts';
+import calendarRouter from './calendar.ts';
 
 export default class Routes {
     setRoutes(APP: Application){
@@ -11,5 +12,6 @@ export default class Routes {
         APP.use('/athletes', athletesRouter);
         APP.use('/healthcheck', healthcheckRouter);
         APP.use('/auth', authRouter);
+        APP.use('/calendar', calendarRouter);
     }
 }

@@ -24,31 +24,54 @@ const Athletes = () => {
   const fetchedRef = useRef(false);
 
   useEffect(() => {
+    // Reset fetchedRef when component unmounts and remounts
+    return () => {
+      fetchedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
     const fetchAthletes = async () => {
-      // Evita chamadas duplicadas na mesma montagem do componente
+      // Avoid duplicate API calls in the same component mount
       if (fetchedRef.current) return;
       fetchedRef.current = true;
 
+      setLoading(true);
       try {
-        const response = await axios.get('/athletes', { headers: { 'Cache-Control': 'no-cache' } });
-        setAthletes(response.data);
-        console.log(response);
-
-        setLoading(false);
+        // Add cache busting parameter and specify Accept header
+        const response = await axios.get('/athletes', { 
+          headers: { 
+            'Cache-Control': 'no-cache',
+            'Accept': 'application/json' 
+          },
+          params: { t: new Date().getTime() } // Cache busting
+        });
+        
+        // Ensure we're parsing the response correctly
+        const athletesData = Array.isArray(response.data) ? response.data : [];
+        setAthletes(athletesData);
+        console.log('Athletes data:', athletesData);
+        
       } catch (err) {
         console.error('Error fetching athletes:', err);
         setError('Failed to load athletes');
+        // Check if the error is authentication related and redirect if needed
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          logout();
+          navigate('/login');
+        }
+      } finally {
         setLoading(false);
       }
     };
 
     fetchAthletes();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, logout]);
 
   const handleLogout = () => {
     logout();
@@ -72,7 +95,9 @@ const Athletes = () => {
   };
 
   if (loading) return <div className="loading">Loading...</div>;
+  
   const athletesBySpecialty = groupAthletesBySpecialty();
+  const hasAthletes = athletes && athletes.length > 0;
 
   return (
     <div className="athletes-container">
@@ -84,7 +109,7 @@ const Athletes = () => {
       </div>
       {error && <div className="error-message">{error}</div>}
       
-      {Object.keys(athletesBySpecialty).length > 0 ? (
+      {hasAthletes ? (
         Object.entries(athletesBySpecialty).map(([specialty, specialtyAthletes]) => (
           <div key={specialty} className="specialty-table-container">
             <h2 className="specialty-title">Especialidade: {specialty}</h2>
