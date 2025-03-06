@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Athlete {
+  id              String   @id @default(uuid())
+  athleteId       Int      @unique
+  name            String
+  surname         String
+  sex             String
+  age             Int
+  nationId        Int
+  owner           String
+  wage            String
+  height          String
+  weight          String
+  fans            Int
+  maxid           String
+  form            Int
+  care            Int
+  experience      Int
+  mood            Int
+  specialtyId     Int
+  favoriteEventId Int
+  strenght        Int
+  stamina         Int
+  speed           Int
+  agility         Int
+  jump            Int
+  throw           Int
+  specialty1      Int
+  specialty2      Int
+  youth           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("athletes")
+}
