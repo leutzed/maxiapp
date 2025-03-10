@@ -7,6 +7,8 @@ const athletesRouter = Express.Router();
 const controller = new AthletesController();
 
 athletesRouter.get('/', isAuthenticated, controller.findAll);
+athletesRouter.get('/sync', isAuthenticated, controller.syncAthletes);
 athletesRouter.get('/:id', isAuthenticated, controller.findAthleteById);
+athletesRouter.get('/:id/history', isAuthenticated, controller.getAthleteHistory);
 
 export default athletesRouter;

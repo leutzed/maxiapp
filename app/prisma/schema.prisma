@@ -7,19 +7,18 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model Athlete {
-  id              String   @id @default(uuid())
-  athleteId       Int      @unique
+  id              String           @id @default(uuid())
+  athleteId       Int              @unique
   name            String
   surname         String
   sex             String
   age             Int
   nationId        Int
-  owner           String
-  wage            String
+  owner           Int
   height          String
   weight          String
   fans            Int
@@ -39,8 +38,21 @@ model Athlete {
   specialty1      Int
   specialty2      Int
   youth           Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  history         AthleteHistory[]
 
   @@map("athletes")
+}
+
+model AthleteHistory {
+  id        String   @id @default(uuid())
+  athleteId Int
+  attribute String
+  oldValue  String
+  newValue  String
+  updatedAt DateTime @default(now())
+  season    Int
+  week      Int
+  Athlete   Athlete  @relation(fields: [athleteId], references: [athleteId])
 }
