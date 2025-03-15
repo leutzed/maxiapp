@@ -1,61 +1,176 @@
 import { Request, Response } from 'express';
-import { parseXML } from '../utils/parser-xml.ts';
-import { Athlete } from '../interfaces/athlete.ts';
-import { Athletes } from '../interfaces/athletes.ts';
+import { PrismaClient } from '@prisma/client';
+import { parseXML } from '../utils/parser-xml';
+import { Athlete } from '../interfaces/athlete';
+import { Athletes } from '../interfaces/athletes';
+import * as athleteService from '../services/athleteService';
+import * as teamService from '../services/teamService';
+import BadRequestError from '../errors/BadRequestError';
+
+const prisma = new PrismaClient();
 
 export default class AthletesController {
+    // Endpoint to fetch all athletes from database or trigger sync
     async findAll(req: Request, res: Response): Promise<void> {
         try {
-            const headers = new Headers();
-            headers.set('cookie', req.session.maxiCookie || '');
-
-            const response = await fetch(`https://www.maxithlon.com/maxi-xml/athletes.php`, {
-                method: "POST", // This should be a GET request
-                headers: {
-                    Cookie: req.session.maxiCookie || ''
-                },
-                credentials: 'include',
-            });
-
-            const jsonResponse = await parseXML<Athletes>(await response.text());
-            // TODO: Create this interface
-            if (jsonResponse['maxi-xml'].error) {
-                res.status(400).json({ message: jsonResponse['maxi-xml'].error });
+            // First check if we have athletes in the database
+            const dbAthletes = await athleteService.findAllAthletes();
+            
+            // If we have no athletes or we want to force a sync with the external API
+            if (dbAthletes.length === 0 || req.query.sync === 'true') {
+                // Buscar as informações do time para obter o teamId
+                const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
+                
+                // Extrair o teamId dos dados do time
+                const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
+                
+                // Sincronizar atletas passando o teamId como parâmetro
+                const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);
+                
+                // Return the data with sync info
+                res.json({
+                    athletes: await athleteService.findAllAthletes(),
+                    syncInfo: {
+                        teamId: teamId,
+                        newCount: syncResults.newAthletes.length,
+                        updatedCount: syncResults.updatedAthletes.length,
+                        changesHistory: syncResults.changesHistory,
+                        totalCount: syncResults.total
+                    }
+                });
                 return;
             }
-
-            res.json(jsonResponse['maxi-xml'].athlete);
+            
+            // Return data from DB
+            res.json(dbAthletes);
             return;
         } catch (err) {
-            throw new Error();
+            console.error(err);
+            
+            // Verificar se é um BadRequestError para retornar status 400
+            if (err instanceof BadRequestError) {
+                res.status(400).json({ message: err.message });
+                return;
+            }
+            
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 
-    async findAthleteById(req: Request, res: Response): Promise<void> {
+    // Endpoint to fetch a specific athlete by athleteId or maxId
+    async findOne(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const headers = new Headers();
-            headers.set('cookie', req.session.maxiCookie || '');
-
-            const response = await fetch(`https://www.maxithlon.com/maxi-xml/athlete.php?athleteid=${id}`, {
-                method: "GET",
-                headers: {
-                    Cookie: req.session.maxiCookie || ''
-                },
-                credentials: 'include',
+            
+            let athlete;
+            
+            // Try to find by athleteId (parsing as number)
+            athlete = await prisma.athlete.findUnique({
+                where: { 
+                    athleteId: parseInt(id)
+                }
             });
             
-            const jsonResponse = await parseXML<Athlete>(await response.text());
+            // If not found by athleteId, try to find by maxid
+            if (!athlete) {
+                athlete = await prisma.athlete.findFirst({
+                    where: { 
+                        maxid: id 
+                    }
+                });
+            }
             
-            if (jsonResponse['maxi-xml'].error) {
-                res.status(400).json({ message: jsonResponse['maxi-xml'].error });
+            if (!athlete) {
+                // If athlete not found locally, try to fetch from web service
+                try {
+                    const webserviceAthlete = await athleteService.fetchAthleteByIdFromWebservice(id, req.session.maxiCookie || '');
+                    
+                    // Create athlete in local DB
+                    athlete = await athleteService.createAthlete(webserviceAthlete);
+                    
+                    res.json({
+                        ...athlete,
+                        _fromWebservice: true
+                    });
+                    return;
+                } catch (webErr) {
+                    // If also not found in webservice or error occurred
+                    res.status(400).json({ message: 'Athlete not found' });
+                    return;
+                }
+            }
+            
+            res.json(athlete);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    // Endpoint to explicitly trigger sync
+    async syncAthletes(req: Request, res: Response): Promise<void> {
+        try {
+            // Primeiro, buscar as informações do time para obter o teamId
+            const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
+            
+            // Extrair o teamId dos dados do time
+            const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
+            
+            // Sincronizar atletas passando o teamId como parâmetro
+            const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);
+            
+            res.json({
+                success: true,
+                teamId: teamId,
+                newCount: syncResults.newAthletes.length,
+                updatedCount: syncResults.updatedAthletes.length,
+                changesHistory: syncResults.changesHistory,
+                totalCount: syncResults.total
+            });
+        } catch (err) {
+            console.error(err);
+            
+            // Verificar se é um BadRequestError para retornar status 400
+            if (err instanceof BadRequestError) {
+                res.status(400).json({ message: err.message });
                 return;
             }
-
-            res.json(jsonResponse['maxi-xml']);
-            return;
+            
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+    
+    // Endpoint to fetch athlete history
+    async getHistory(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const athleteId = parseInt(id);
+            
+            // Verificar se o atleta existe
+            const athlete = await prisma.athlete.findUnique({
+                where: { 
+                    athleteId 
+                }
+            });
+            
+            if (!athlete) {
+                res.status(400).json({ message: 'Athlete not found' });
+                return;
+            }
+            
+            // Buscar o histórico do atleta
+            const history = await athleteService.getAthleteHistory(athleteId);
+            
+            res.json({
+                athlete: {
+                    athleteId,
+                    name: `${athlete.name} ${athlete.surname}`
+                },
+                history
+            });
         } catch (err) {
-            throw new Error();
+            console.error(err);
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }
