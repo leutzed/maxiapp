@@ -14,35 +14,38 @@ export const createAthlete = async (data: any) => {
         specialtyIdValue = data.specialtyId._ || data.specialtyId.value || data.specialtyId;
     }
     
+    // Preparar os dados básicos do atleta
+    const athleteData = {
+        athleteId: parseInt(data.athleteId),
+        name: data.name,
+        surname: data.surname,
+        sex: data.sex,
+        age: parseInt(data.age),
+        nationId: parseInt(data.nationId),
+        owner: parseInt(data.owner),
+        height: data.height.toString(),
+        weight: data.weight.toString(),
+        fans: parseInt(data.fans),
+        maxid: data.maxid,
+        form: parseInt(data.form),
+        care: parseInt(data.care),
+        experience: parseInt(data.experience),
+        mood: parseInt(data.mood),
+        specialtyId: parseInt(specialtyIdValue),
+        favoriteEventId: parseInt(data.favoriteEventId),
+        strenght: parseInt(data.strenght),
+        stamina: parseInt(data.stamina),
+        speed: parseInt(data.speed),
+        agility: parseInt(data.agility),
+        jump: parseInt(data.jump),
+        throw: parseInt(data.throw),
+        specialty1: parseInt(data.specialty1),
+        specialty2: parseInt(data.specialty2),
+        youth: data.youth === 'true' ? 1 : parseInt(data.youth)
+    };
+    
     return await prisma.athlete.create({ 
-        data: {
-            athleteId: parseInt(data.athleteId),
-            name: data.name,
-            surname: data.surname,
-            sex: data.sex,
-            age: parseInt(data.age),
-            nationId: parseInt(data.nationId),
-            owner: parseInt(data.owner),
-            height: data.height.toString(),
-            weight: data.weight.toString(),
-            fans: parseInt(data.fans),
-            maxid: data.maxid,
-            form: parseInt(data.form),
-            care: parseInt(data.care),
-            experience: parseInt(data.experience),
-            mood: parseInt(data.mood),
-            specialtyId: parseInt(specialtyIdValue),
-            favoriteEventId: parseInt(data.favoriteEventId),
-            strenght: parseInt(data.strenght),
-            stamina: parseInt(data.stamina),
-            speed: parseInt(data.speed),
-            agility: parseInt(data.agility),
-            jump: parseInt(data.jump),
-            throw: parseInt(data.throw),
-            specialty1: parseInt(data.specialty1),
-            specialty2: parseInt(data.specialty2),
-            youth: data.youth === 'true' ? 1 : parseInt(data.youth)
-        }
+        data: athleteData
     });
 }
 
@@ -233,38 +236,41 @@ export const updateAthleteWithHistory = async (athleteId: number, existingAthlet
         specialtyIdValue = newData.specialtyId._ || newData.specialtyId.value || newData.specialtyId;
     }
     
-    // Depois atualiza o atleta
+    // Preparar os dados de atualização
+    const updateData = {
+        name: newData.name,
+        surname: newData.surname,
+        sex: newData.sex,
+        age: parseInt(newData.age),
+        nationId: parseInt(newData.nationId),
+        owner: parseInt(newData.owner),
+        height: newData.height.toString(),
+        weight: newData.weight.toString(),
+        fans: parseInt(newData.fans),
+        maxid: newData.maxid,
+        form: parseInt(newData.form),
+        care: parseInt(newData.care),
+        experience: parseInt(newData.experience),
+        mood: parseInt(newData.mood),
+        specialtyId: parseInt(specialtyIdValue),
+        favoriteEventId: parseInt(newData.favoriteEventId),
+        strenght: parseInt(newData.strenght),
+        stamina: parseInt(newData.stamina),
+        speed: parseInt(newData.speed),
+        agility: parseInt(newData.agility),
+        jump: parseInt(newData.jump),
+        throw: parseInt(newData.throw),
+        specialty1: parseInt(newData.specialty1),
+        specialty2: parseInt(newData.specialty2),
+        youth: newData.youth === 'true' ? 1 : parseInt(newData.youth)
+    };
+    
+    // Atualiza o atleta com os dados preparados
     const updatedAthlete = await prisma.athlete.update({
         where: {
             athleteId
         },
-        data: {
-            name: newData.name,
-            surname: newData.surname,
-            sex: newData.sex,
-            age: parseInt(newData.age),
-            nationId: parseInt(newData.nationId),
-            owner: parseInt(newData.owner),
-            height: newData.height.toString(),
-            weight: newData.weight.toString(),
-            fans: parseInt(newData.fans),
-            maxid: newData.maxid,
-            form: parseInt(newData.form),
-            care: parseInt(newData.care),
-            experience: parseInt(newData.experience),
-            mood: parseInt(newData.mood),
-            specialtyId: parseInt(specialtyIdValue),
-            favoriteEventId: parseInt(newData.favoriteEventId),
-            strenght: parseInt(newData.strenght),
-            stamina: parseInt(newData.stamina),
-            speed: parseInt(newData.speed),
-            agility: parseInt(newData.agility),
-            jump: parseInt(newData.jump),
-            throw: parseInt(newData.throw),
-            specialty1: parseInt(newData.specialty1),
-            specialty2: parseInt(newData.specialty2),
-            youth: newData.youth === 'true' ? 1 : parseInt(newData.youth)
-        }
+        data: updateData
     });
     
     return {
@@ -280,18 +286,27 @@ export const updateAthleteWithHistory = async (athleteId: number, existingAthlet
  * Para atletas existentes, registra as mudanças no histórico antes de atualizar.
  * 
  * @param maxiCookie Cookie de autenticação para o webservice externo
+ * @param teamId ID do time a ser associado aos atletas durante a sincronização (usará owner se fornecido)
  * @returns Objeto com informações sobre atletas novos e atualizados
  */
-export const syncAthletes = async (maxiCookie: string) => {
+export const syncAthletes = async (maxiCookie: string, teamId?: number) => {
     const webserviceAthletes = await fetchAthletesFromWebservice(maxiCookie);
     const newAthletes = [];
     const updatedAthletes = [];
     const changesHistory = [];
-
+    
+    console.log(`Sincronizando atletas para o time ID: ${teamId || 'usando owner existente'}`);
+    
     for (const athlete of webserviceAthletes) {
         // Verifica se o atleta já existe no banco de dados pelo athleteId
         const athleteId = parseInt(athlete.athleteId);
         const existingAthlete = await findAthleteByAthleteId(athleteId);
+        
+        // Se o teamId foi fornecido e é diferente do owner atual, atualiza o owner
+        if (teamId && parseInt(athlete.owner) !== teamId) {
+            console.log(`Atualizando owner do atleta ${athleteId} de ${athlete.owner} para ${teamId}`);
+            athlete.owner = teamId.toString();
+        }
         
         if (!existingAthlete) {
             // Atleta não existe no banco, cria um novo registro
@@ -311,7 +326,6 @@ export const syncAthletes = async (maxiCookie: string) => {
             }
         }
     }
-
     return {
         newAthletes,
         updatedAthletes,

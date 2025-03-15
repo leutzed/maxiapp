@@ -1,14 +1,16 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { parseXML } from '../utils/parser-xml.ts';
-import { Athlete } from '../interfaces/athlete.ts';
-import { Athletes } from '../interfaces/athletes.ts';
-import * as athleteService from '../services/athleteService.ts';
-import BadRequestError from '../errors/BadRequestError.ts';
+import { parseXML } from '../utils/parser-xml';
+import { Athlete } from '../interfaces/athlete';
+import { Athletes } from '../interfaces/athletes';
+import * as athleteService from '../services/athleteService';
+import * as teamService from '../services/teamService';
+import BadRequestError from '../errors/BadRequestError';
 
 const prisma = new PrismaClient();
 
 export default class AthletesController {
+    // Endpoint to fetch all athletes from database or trigger sync
     async findAll(req: Request, res: Response): Promise<void> {
         try {
             // First check if we have athletes in the database
@@ -16,12 +18,20 @@ export default class AthletesController {
             
             // If we have no athletes or we want to force a sync with the external API
             if (dbAthletes.length === 0 || req.query.sync === 'true') {
-                const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '');
+                // Buscar as informações do time para obter o teamId
+                const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
+                
+                // Extrair o teamId dos dados do time
+                const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
+                
+                // Sincronizar atletas passando o teamId como parâmetro
+                const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);
                 
                 // Return the data with sync info
                 res.json({
                     athletes: await athleteService.findAllAthletes(),
                     syncInfo: {
+                        teamId: teamId,
                         newCount: syncResults.newAthletes.length,
                         updatedCount: syncResults.updatedAthletes.length,
                         changesHistory: syncResults.changesHistory,
@@ -47,48 +57,71 @@ export default class AthletesController {
         }
     }
 
-    async findAthleteById(req: Request, res: Response): Promise<void> {
+    // Endpoint to fetch a specific athlete by athleteId or maxId
+    async findOne(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            const athleteId = parseInt(id);
             
-            // First check if athlete exists in our database
-            const dbAthlete = await athleteService.findAthleteByAthleteId(athleteId);
+            let athlete;
             
-            // If athlete exists in database, return it
-            if (dbAthlete) {
-                res.json(dbAthlete);
-                return;
+            // Try to find by athleteId (parsing as number)
+            athlete = await prisma.athlete.findUnique({
+                where: { 
+                    athleteId: parseInt(id)
+                }
+            });
+            
+            // If not found by athleteId, try to find by maxid
+            if (!athlete) {
+                athlete = await prisma.athlete.findFirst({
+                    where: { 
+                        maxid: id 
+                    }
+                });
             }
             
-            // If not in db, fetch from external API and create in db
-            const athleteData = await athleteService.fetchAthleteByIdFromWebservice(id, req.session.maxiCookie || '');
+            if (!athlete) {
+                // If athlete not found locally, try to fetch from web service
+                try {
+                    const webserviceAthlete = await athleteService.fetchAthleteByIdFromWebservice(id, req.session.maxiCookie || '');
+                    
+                    // Create athlete in local DB
+                    athlete = await athleteService.createAthlete(webserviceAthlete);
+                    
+                    res.json({
+                        ...athlete,
+                        _fromWebservice: true
+                    });
+                    return;
+                } catch (webErr) {
+                    // If also not found in webservice or error occurred
+                    res.status(404).json({ message: 'Athlete not found' });
+                    return;
+                }
+            }
             
-            // Create athlete in db
-            const newAthlete = await athleteService.createAthlete(athleteData);
-            
-            res.json(newAthlete);
-            return;
+            res.json(athlete);
         } catch (err) {
             console.error(err);
-            
-            // Verificar se é um BadRequestError para retornar status 400
-            if (err instanceof BadRequestError) {
-                res.status(400).json({ message: err.message });
-                return;
-            }
-            
             res.status(500).json({ message: 'Internal server error' });
         }
     }
-    
+
     // Endpoint to explicitly trigger sync
     async syncAthletes(req: Request, res: Response): Promise<void> {
         try {
-            const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '');
+            // Primeiro, buscar as informações do time para obter o teamId
+            const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
+            
+            // Extrair o teamId dos dados do time
+            const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
+            
+            // Sincronizar atletas passando o teamId como parâmetro
+            const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);
             
             res.json({
                 success: true,
+                teamId: teamId,
                 newCount: syncResults.newAthletes.length,
                 updatedCount: syncResults.updatedAthletes.length,
                 changesHistory: syncResults.changesHistory,
@@ -107,15 +140,34 @@ export default class AthletesController {
         }
     }
     
-    // Endpoint para buscar o histórico de um atleta específico
-    async getAthleteHistory(req: Request, res: Response): Promise<void> {
+    // Endpoint to fetch athlete history
+    async getHistory(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
             const athleteId = parseInt(id);
             
+            // Verificar se o atleta existe
+            const athlete = await prisma.athlete.findUnique({
+                where: { 
+                    athleteId 
+                }
+            });
+            
+            if (!athlete) {
+                res.status(404).json({ message: 'Athlete not found' });
+                return;
+            }
+            
+            // Buscar o histórico do atleta
             const history = await athleteService.getAthleteHistory(athleteId);
             
-            res.json(history);
+            res.json({
+                athlete: {
+                    athleteId,
+                    name: `${athlete.name} ${athlete.surname}`
+                },
+                history
+            });
         } catch (err) {
             console.error(err);
             res.status(500).json({ message: 'Internal server error' });
