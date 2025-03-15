@@ -95,7 +95,7 @@ export default class AthletesController {
                     return;
                 } catch (webErr) {
                     // If also not found in webservice or error occurred
-                    res.status(404).json({ message: 'Athlete not found' });
+                    res.status(400).json({ message: 'Athlete not found' });
                     return;
                 }
             }
@@ -154,7 +154,7 @@ export default class AthletesController {
             });
             
             if (!athlete) {
-                res.status(404).json({ message: 'Athlete not found' });
+                res.status(400).json({ message: 'Athlete not found' });
                 return;
             }
             
