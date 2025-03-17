@@ -13,46 +13,22 @@ export default class AthletesController {
     // Endpoint to fetch all athletes from database or trigger sync
     async findAll(req: Request, res: Response): Promise<void> {
         try {
-            // First check if we have athletes in the database
-            const dbAthletes = await athleteService.findAllAthletes();
-            
-            // If we have no athletes or we want to force a sync with the external API
-            if (dbAthletes.length === 0 || req.query.sync === 'true') {
-                // Buscar as informações do time para obter o teamId
-                const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
-                
-                // Extrair o teamId dos dados do time
-                const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
-                
-                // Sincronizar atletas passando o teamId como parâmetro
-                const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);
-                
-                // Return the data with sync info
-                res.json({
-                    athletes: await athleteService.findAllAthletes(),
-                    syncInfo: {
-                        teamId: teamId,
-                        newCount: syncResults.newAthletes.length,
-                        updatedCount: syncResults.updatedAthletes.length,
-                        changesHistory: syncResults.changesHistory,
-                        totalCount: syncResults.total
-                    }
-                });
-                return;
+            // Buscar as informações do time para obter o teamId
+            const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
+            const teamId = teamData && teamData.teamId ? parseInt(teamData.teamId) : undefined;
+
+            if (!teamId) {
+                throw new BadRequestError({ message: 'Team ID not found' });
             }
-            
-            // Return data from DB
+
+            const dbAthletes = await athleteService.findAllAthletes(teamId);
             res.json(dbAthletes);
-            return;
         } catch (err) {
             console.error(err);
-            
-            // Verificar se é um BadRequestError para retornar status 400
             if (err instanceof BadRequestError) {
                 res.status(400).json({ message: err.message });
                 return;
             }
-            
             res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -114,7 +90,7 @@ export default class AthletesController {
             const teamData = await teamService.fetchTeamFromWebservice(req.session.maxiCookie || '');
             
             // Extrair o teamId dos dados do time
-            const teamId = teamData.team && teamData.team.teamId ? parseInt(teamData.team.teamId) : undefined;
+            const teamId = teamData && teamData.teamId ? parseInt(teamData.teamId) : undefined;
             
             // Sincronizar atletas passando o teamId como parâmetro
             const syncResults = await athleteService.syncAthletes(req.session.maxiCookie || '', teamId);

@@ -1,0 +1,69 @@
+.athlete-detail-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  .athlete-header {
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
+
+    h2 {
+      margin: 0;
+      font-size: 1.8rem;
+
+      &.name-male {
+        color: #32A9AF;
+      }
+
+      &.name-female {
+        color: #E63CE6;
+      }
+    }
+
+    .maxid {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+    }
+  }
+
+  .athlete-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+
+    .stat-group {
+      h3 {
+        color: #34495e;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+      }
+
+      .stat-item {
+        margin: 0.8rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        span:first-child {
+          color: #7f8c8d;
+          font-weight: 500;
+        }
+
+        .stat-value {
+          &.medium {
+            font-weight: bold;
+          }
+
+          &.high {
+            font-weight: bold;
+            color: #008000;
+          }
+        }
+      }
+    }
+  }
+}

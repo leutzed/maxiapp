@@ -62,7 +62,14 @@ export const findAthleteByAthleteId = async (athleteId: number) => {
     });
 }
 
-export const findAllAthletes = async () => {
+export const findAllAthletes = async (owner?: number) => {
+    if (owner) {
+        return await prisma.athlete.findMany({
+            where: {
+                owner
+            }
+        });
+    }
     return await prisma.athlete.findMany();
 }
 
