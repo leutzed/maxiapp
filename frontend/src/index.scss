@@ -1,0 +1,25 @@
+// Variáveis SCSS
+$font-family-base: system-ui, sans-serif;
+$line-height-base: 1.5;
+$font-weight-base: 400;
+
+// Estilos globais
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: $font-family-base;
+}
+
+body {
+  overflow-x: hidden;
+  line-height: $line-height-base;
+  font-weight: $font-weight-base;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}

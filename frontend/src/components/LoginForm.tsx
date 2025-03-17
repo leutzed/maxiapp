@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './LoginForm.css';
+import './LoginForm.scss';
 
 const LoginForm: React.FC = () => {
   const [user, setUser] = useState('');
@@ -39,37 +39,45 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="login-form">
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="user">Username</label>
-          <input
-            type="text"
-            id="user"
-            value={user}
-            onChange={(e) => setUser(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
+    <div className="login-form-container">
+      <div className="login-form">
+        <h2>Login to Maxiapp</h2>
         
-        <div className="form-group">
-          <label htmlFor="scode">Security Code</label>
-          <input
-            type="password"
-            id="scode"
-            value={scode}
-            onChange={(e) => setScode(e.target.value)}
-            required
-            disabled={loading}
-          />
-        </div>
+        {error && <div className="error-message">{error}</div>}
         
-        <button type="submit" className="login-button" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="user">Username</label>
+            <input
+              type="text"
+              id="user"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="scode">Security Code</label>
+            <input
+              type="password"
+              id="scode"
+              value={scode}
+              onChange={(e) => setScode(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        <div className="login-footer">
+          <p>Maxiapp - Your Maxithlon Companion</p>
+        </div>
+      </div>
     </div>
   );
 };
