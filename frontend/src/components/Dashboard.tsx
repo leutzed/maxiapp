@@ -44,6 +44,13 @@ const Dashboard: React.FC = () => {
     fetchAthletes();
   }, []);
 
+  // Função para determinar o estilo de atributos baseado no valor
+  const getStatStyle = (value: number) => {
+    if (value >= 17) return { fontWeight: 'bold', color: '#008000' };
+    if (value >= 10) return { fontWeight: 'bold' };
+    return {};
+  };
+
   const renderAthletesTable = (athletes: Athlete[], specialtyId: number) => {
     const filteredAthletes = athletes.filter(
       athlete => athlete.specialtyId === specialtyId
@@ -80,7 +87,11 @@ const Dashboard: React.FC = () => {
             {filteredAthletes.map((athlete) => (
               <tr key={athlete.athleteId}>
                 <td>
-                  <Link to={`/athlete/${athlete.athleteId}`} className="athlete-link">
+                  <Link 
+                    to={`/athlete/${athlete.athleteId}`} 
+                    className="athlete-link"
+                    style={{ color: athlete.sex === '0' ? '#32A9AF' : '#E63CE6' }}
+                  >
                     {`${athlete.name} ${athlete.surname}`}
                   </Link>
                 </td>
@@ -89,17 +100,17 @@ const Dashboard: React.FC = () => {
                 <td>{athlete.nationId}</td>
                 <td>{athlete.maxid}</td>
                 <td>{athlete.form}</td>
-                <td>{athlete.care}</td>
-                <td>{athlete.experience}</td>
-                <td>{athlete.mood}</td>
-                <td>{athlete.strenght}</td>
-                <td>{athlete.stamina}</td>
-                <td>{athlete.speed}</td>
-                <td>{athlete.agility}</td>
-                <td>{athlete.jump}</td>
-                <td>{athlete.throw}</td>
-                <td>{athlete.specialty1}</td>
-                <td>{athlete.specialty2}</td>
+                <td style={getStatStyle(athlete.care)}>{athlete.care}</td>
+                <td style={getStatStyle(athlete.experience)}>{athlete.experience}</td>
+                <td style={getStatStyle(athlete.mood)}>{athlete.mood}</td>
+                <td style={getStatStyle(athlete.strenght)}>{athlete.strenght}</td>
+                <td style={getStatStyle(athlete.stamina)}>{athlete.stamina}</td>
+                <td style={getStatStyle(athlete.speed)}>{athlete.speed}</td>
+                <td style={getStatStyle(athlete.agility)}>{athlete.agility}</td>
+                <td style={getStatStyle(athlete.jump)}>{athlete.jump}</td>
+                <td style={getStatStyle(athlete.throw)}>{athlete.throw}</td>
+                <td style={getStatStyle(Number(athlete.specialty1))}>{athlete.specialty1}</td>
+                <td style={getStatStyle(Number(athlete.specialty2))}>{athlete.specialty2}</td>
               </tr>
             ))}
           </tbody>

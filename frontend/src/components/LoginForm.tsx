@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import './LoginForm.scss';
 
 const LoginForm: React.FC = () => {
@@ -8,6 +10,8 @@ const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [syncingAthletes, setSyncingAthletes] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,20 +19,8 @@ const LoginForm: React.FC = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user, scode }),
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Authentication failed');
-      }
-      const data = await response.json();
-      console.log('Login successful:', data);
+      // Usar o método login do contexto de autenticação
+      await login(user, scode);
       
       // Mostra o loader de sincronização
       setLoading(false);
@@ -59,7 +51,7 @@ const LoginForm: React.FC = () => {
           // Aguarda um breve momento para mostrar que está 100% completo
           setTimeout(() => {
             // Redirect to home page after successful sync
-            window.location.href = '/home';
+            navigate('/home');
           }, 300);
         } else {
           setSyncingAthletes(false);
@@ -68,7 +60,7 @@ const LoginForm: React.FC = () => {
           
           // Mesmo com falha, redireciona após um tempo
           setTimeout(() => {
-            window.location.href = '/home';
+            navigate('/home');
           }, 2000);
         }
       } catch (syncErr) {
@@ -79,7 +71,7 @@ const LoginForm: React.FC = () => {
         
         // Mesmo com erro, redireciona após um tempo
         setTimeout(() => {
-          window.location.href = '/home';
+          navigate('/home');
         }, 2000);
       }
     } catch (err) {
