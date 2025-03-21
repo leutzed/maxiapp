@@ -3,6 +3,7 @@ import { Athlete } from "../interfaces/athlete";
 import { parseXML } from "../utils/parser-xml";
 import { Athletes } from "../interfaces/athletes";
 import BadRequestError from "../errors/BadRequestError";
+import { Calendar } from "../interfaces/calendar";
 
 const prisma = new PrismaClient();
 
@@ -118,8 +119,41 @@ export const fetchAthleteByIdFromWebservice = async (athleteId: string, maxiCook
         throw new BadRequestError({ message: jsonResponse['maxi-xml'].error });
     }
 
-    // Retorna o atleta com estrutura específica
-    return jsonResponse['maxi-xml'].athlete;
+    // Retorna o objeto diretamente, sem tentar acessar 'athlete'
+    return jsonResponse['maxi-xml'];
+}
+
+/**
+ * Busca informações de temporada e semana atual do calendário
+ * @param maxiCookie Cookie de autenticação para o webservice externo
+ * @returns Objeto com a temporada e semana atual
+ */
+export const fetchCalendarInfo = async (maxiCookie: string) => {
+    try {
+        const response = await fetch(`https://www.maxithlon.com/maxi-xml/calendar.php`, {
+            method: "GET",
+            headers: {
+                Cookie: maxiCookie || ''
+            },
+            credentials: 'include',
+        });
+
+        const xmlText = await response.text();
+        const jsonResponse = await parseXML<Calendar>(xmlText);
+        
+        if (jsonResponse['maxi-xml'].error) {
+            console.error("Error fetching calendar:", jsonResponse['maxi-xml'].error);
+            return { season: 0, currentWeek: 0 };
+        }
+        
+        return {
+            season: parseInt(jsonResponse['maxi-xml'].season),
+            currentWeek: parseInt(jsonResponse['maxi-xml'].currentWeek)
+        };
+    } catch (err) {
+        console.error("Failed to fetch calendar info:", err);
+        return { season: 0, currentWeek: 0 };
+    }
 }
 
 /**
@@ -169,12 +203,18 @@ export const updateAthlete = async (athleteId: number, data: any) => {
  * @param athleteId ID do atleta
  * @param existingAthlete Dados atuais do atleta no banco
  * @param newData Novos dados vindos do webservice
+ * @param season Temporada atual
+ * @param week Semana atual
  * @returns Array com os registros de histórico criados
  */
-export const recordAthleteChanges = async (athleteId: number, existingAthlete: any, newData: any) => {
+export const recordAthleteChanges = async (
+    athleteId: number, 
+    existingAthlete: any, 
+    newData: any, 
+    season: number, 
+    week: number
+) => {
     const changes = [];
-    const currentSeason = 0; // TODO: Obter a temporada atual
-    const currentWeek = 0; // TODO: Obter a semana atual
     
     // Lista de atributos que queremos monitorar mudanças
     const attributesToTrack = [
@@ -205,8 +245,8 @@ export const recordAthleteChanges = async (athleteId: number, existingAthlete: a
                     attribute: attr,
                     oldValue,
                     newValue,
-                    season: currentSeason,
-                    week: currentWeek
+                    season,
+                    week
                 }
             });
             changes.push(historyRecord);
@@ -223,11 +263,19 @@ export const recordAthleteChanges = async (athleteId: number, existingAthlete: a
  * @param athleteId ID do atleta a ser atualizado
  * @param existingAthlete Dados atuais do atleta no banco
  * @param newData Novos dados do atleta
+ * @param season Temporada atual
+ * @param week Semana atual
  * @returns Objeto com o atleta atualizado e as mudanças registradas
  */
-export const updateAthleteWithHistory = async (athleteId: number, existingAthlete: any, newData: any) => {
+export const updateAthleteWithHistory = async (
+    athleteId: number, 
+    existingAthlete: any, 
+    newData: any, 
+    season: number, 
+    week: number
+) => {
     // Primeiro registra as mudanças na tabela de histórico
-    const changes = await recordAthleteChanges(athleteId, existingAthlete, newData);
+    const changes = await recordAthleteChanges(athleteId, existingAthlete, newData, season, week);
     
     // Se não houve mudanças, retorna o atleta existente
     if (changes.length === 0) {
@@ -297,12 +345,19 @@ export const updateAthleteWithHistory = async (athleteId: number, existingAthlet
  * @returns Objeto com informações sobre atletas novos e atualizados
  */
 export const syncAthletes = async (maxiCookie: string, teamId?: number) => {
+    // Busca as informações do calendário uma única vez no início do processo
+    const calendarInfo = await fetchCalendarInfo(maxiCookie);
+    const currentSeason = calendarInfo.season;
+    const currentWeek = calendarInfo.currentWeek;
+    
+    console.log(`Sincronizando atletas - Temporada ${currentSeason}, Semana ${currentWeek}`);
+    
     const webserviceAthletes = await fetchAthletesFromWebservice(maxiCookie);
     const newAthletes = [];
     const updatedAthletes = [];
     const changesHistory = [];
     
-    console.log(`Sincronizando atletas para o time ID: ${teamId || 'usando owner existente'}`);
+    console.log(`Sincronizando ${webserviceAthletes.length} atletas para o time ID: ${teamId || 'usando owner existente'}`);
     
     for (const athlete of webserviceAthletes) {
         // Verifica se o atleta já existe no banco de dados pelo athleteId
@@ -320,8 +375,14 @@ export const syncAthletes = async (maxiCookie: string, teamId?: number) => {
             const newAthlete = await createAthlete(athlete);
             newAthletes.push(newAthlete);
         } else {
-            // Atleta existe, registra mudanças e atualiza
-            const result = await updateAthleteWithHistory(athleteId, existingAthlete, athlete);
+            // Atleta existe, registra mudanças e atualiza usando as informações do calendário
+            const result = await updateAthleteWithHistory(
+                athleteId, 
+                existingAthlete, 
+                athlete, 
+                currentSeason, 
+                currentWeek
+            );
             
             if (result.changes.length > 0) {
                 updatedAthletes.push(result.athlete);
@@ -333,11 +394,16 @@ export const syncAthletes = async (maxiCookie: string, teamId?: number) => {
             }
         }
     }
+    
     return {
         newAthletes,
         updatedAthletes,
         changesHistory,
-        total: webserviceAthletes.length
+        total: webserviceAthletes.length,
+        calendar: {
+            season: currentSeason,
+            week: currentWeek
+        }
     };
 }
 
