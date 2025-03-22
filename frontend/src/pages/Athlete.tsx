@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AthleteCard from '../components/AthleteCard';
+import AthleteHistoryComponent from '../components/AthleteHistory';
 import './Athlete.scss';
 import { Athlete as AthleteType } from '../interfaces/Athlete';
 
@@ -68,6 +69,7 @@ const Athlete: React.FC = () => {
         </button>
       </div>
       <AthleteCard athlete={athlete} />
+      <AthleteHistoryComponent athleteId={athlete.athleteId} />
     </div>
   );
 };

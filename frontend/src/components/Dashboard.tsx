@@ -65,7 +65,6 @@ const Dashboard: React.FC = () => {
           <thead>
             <tr>
               <th>Full Name</th>
-              <th>Sex</th>
               <th>Age</th>
               <th>Nation ID</th>
               <th>Max ID</th>
@@ -95,7 +94,6 @@ const Dashboard: React.FC = () => {
                     {`${athlete.name} ${athlete.surname}`}
                   </Link>
                 </td>
-                <td>{athlete.sex}</td>
                 <td>{athlete.age}</td>
                 <td>{athlete.nationId}</td>
                 <td>{athlete.maxid}</td>
