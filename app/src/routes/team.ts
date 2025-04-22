@@ -1,7 +1,7 @@
 import Express from 'express';
 
-import TeamController from '../controllers/team.ts';
-import { isAuthenticated } from '../middlewares/auth.ts';
+import TeamController from '../controllers/team';
+import { isAuthenticated } from '../middlewares/auth';
 
 const teamRouter = Express.Router();
 const controller = new TeamController();

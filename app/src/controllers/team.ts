@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import * as teamService from '../services/teamService.ts';
+import * as teamService from '../services/teamService';
 
 export default class TeamController {
     async getTeam(req: Request, res: Response): Promise<void> {

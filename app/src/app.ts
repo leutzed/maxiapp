@@ -1,8 +1,8 @@
 import Express, { Application } from 'express';
 import cors from 'cors';
-import Routes from './routes/routes.ts';
+import Routes from './routes/routes';
 import session from 'express-session';
-import { errorHandler } from './middlewares/errors.ts';
+import { errorHandler } from './middlewares/errors';
 
 class App {
     public app: Application;

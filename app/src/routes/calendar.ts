@@ -1,7 +1,7 @@
 import Express from 'express';
 
-import CalendarController from '../controllers/calendar.ts';
-import { isAuthenticated } from '../middlewares/auth.ts';
+import CalendarController from '../controllers/calendar';
+import { isAuthenticated } from '../middlewares/auth';
 
 const calendarRouter = Express.Router();
 const controller = new CalendarController();

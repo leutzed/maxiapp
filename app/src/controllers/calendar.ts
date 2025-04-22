@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { parseXML } from '../utils/parser-xml.ts';
-import { Calendar } from '../interfaces/calendar.ts';
+import { parseXML } from '../utils/parser-xml';
+import { Calendar } from '../interfaces/calendar';
 
 export default class CalendarController {
     async getDate(req: Request, res: Response): Promise<void> {

@@ -1,10 +1,10 @@
 import { Application } from 'express';
 
-import athletesRouter from './athletes.ts';
-import healthcheckRouter from './healthcheck.ts';
-import authRouter from './auth.ts';
-import calendarRouter from './calendar.ts';
-import teamRouter from './team.ts';
+import athletesRouter from './athletes';
+import healthcheckRouter from './healthcheck';
+import authRouter from './auth';
+import calendarRouter from './calendar';
+import teamRouter from './team';
 
 export default class Routes {
     setRoutes(APP: Application){
