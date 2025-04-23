@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: ./environment/Dockerfile.backend
+    container_name: maxiapp-backend
+    volumes:
+      - ../app/src:/home/node/app/src:z
+      - ../app/.env:/home/node/app/.env:z
+      - ../app/prisma:/home/node/app/prisma:z
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=file:./prisma/dev.db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: ./environment/Dockerfile.frontend
+    container_name: maxiapp-frontend
+    volumes:
+      - ../frontend/src:/app/src:z
+      - ../frontend/public:/app/public:z
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: maxiapp-network
