@@ -1,16 +1,11 @@
-FROM node:20.6.0-alpine
+FROM node:slim
 
 WORKDIR /app
 
-COPY ./frontend/package*.json ./
+COPY ../frontend/package.json .
+
 RUN npm install
 
-# Copia os arquivos de configuração
-COPY ./frontend/*.config.* ./
-COPY ./frontend/tsconfig*.json ./
-COPY ./frontend/index.html ./
-COPY ./frontend/src ./
-COPY ./frontend/public ./
+COPY ../frontend .
 
-# O código abaixo é para desenvolvimento (hot-reload)
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev"]

@@ -1,24 +1,37 @@
-FROM node:20.6.0-alpine
+FROM node:slim
 
-# Instala dependências necessárias e configura npm para ignorar SSL
-RUN npm config set strict-ssl false
-RUN npm config set registry http://registry.npmjs.org/
+WORKDIR /app
 
-RUN mkdir -p /home/node/app
+COPY ../app/package.json .
 
-WORKDIR /home/node/app
-RUN chown -R node:node .
+RUN npm install
 
-USER node
+COPY ../app .
 
-COPY ./app/package*.json /home/node/app/
-RUN npm install --force --loglevel verbose
+CMD ["npm", "run", "dev"]
 
-COPY ./app/prisma /home/node/app/prisma/
+#####################################################
+# FROM node:slim
+
+# # # Instala dependências necessárias e configura npm para ignorar SSL
+# # RUN npm config set strict-ssl false
+# # RUN npm config set registry http://registry.npmjs.org/
+
+# RUN mkdir -p /home/node/app
+
+# WORKDIR /home/node/app
+# RUN chown -R node:node .
+
+# USER node
+
+# COPY ./app/package*.json /home/node/app/
+# RUN npm install --force --loglevel verbose
+
+# COPY ./app/prisma /home/node/app/prisma/
 
 # ENV NODE_TLS_REJECT_UNAUTHORIZED=0 
 # RUN npm config set strict-ssl false
-RUN npx prisma generate
+# RUN npx prisma generate
 
-# Comando para iniciar o servidor com hot-reload
-CMD [ "npm", "run", "dev" ]
+# # Comando para iniciar o servidor com hot-reload
+# CMD [ "npm", "run", "dev" ]

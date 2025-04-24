@@ -7,14 +7,13 @@ services:
       dockerfile: ./environment/Dockerfile.backend
     container_name: maxiapp-backend
     volumes:
-      - ../app/src:/home/node/app/src:z
-      - ../app/.env:/home/node/app/.env:z
-      - ../app/prisma:/home/node/app/prisma:z
+      - ../app:/app:z
+      # - ../app/prisma:/home/node/app/prisma:z
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=file:./prisma/dev.db
+    # environment:
+    #   - NODE_ENV=development
+    #   - DATABASE_URL=file:./prisma/dev.db
     restart: unless-stopped
 
   frontend:
@@ -23,12 +22,10 @@ services:
       dockerfile: ./environment/Dockerfile.frontend
     container_name: maxiapp-frontend
     volumes:
-      - ../frontend/src:/app/src:z
-      - ../frontend/public:/app/public:z
+        - ../frontend:/app:z
+        - /app/node_modules
     ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:3000
+      - "8080:8080"
     depends_on:
       - backend
     restart: unless-stopped
