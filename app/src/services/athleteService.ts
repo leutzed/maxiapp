@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/client';
 import { Athlete } from "../interfaces/athlete";
 import { parseXML } from "../utils/parser-xml";
 import { Athletes } from "../interfaces/athletes";

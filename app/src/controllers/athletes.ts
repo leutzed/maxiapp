@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 import { parseXML } from '../utils/parser-xml';
 import { Athlete } from '../interfaces/athlete';
 import { Athletes } from '../interfaces/athletes';

@@ -1,9 +1,9 @@
 services:
   web:
     build:
-      context: .
+      context: ./app
     volumes:
-      - ./app/src:/home/node/app/src:z
-      - ./app/.env:/home/node/app/.env:z
+      - ./app:/usr/src/app:z
     ports:
       - 3000:3000
+      - 5555:5555
