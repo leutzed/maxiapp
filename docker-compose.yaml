@@ -1,9 +1,13 @@
 services:
-  web:
+  backend:
     build:
       context: ./app
     volumes:
       - ./app:/usr/src/app:z
+      - node_modules:/usr/src/app/node_modules
     ports:
       - 3000:3000
       - 5555:5555
+
+volumes:
+  node_modules:
