@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "Preserve",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "resolveJsonModule": true,
     "noEmit": false,

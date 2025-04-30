@@ -1,9 +1,10 @@
 FROM node:23-alpine
 
-WORKDIR /usr/src/app
+RUN mkdir -p /usr/src/cache
+WORKDIR /usr/src/cache
 
 # Instalar openssl para resolver problemas de certificado
-RUN apk add --no-cache openssl ca-certificates
+RUN apk add --no-cache openssl ca-certificates rsync
 
 # Configurar NODE_TLS_REJECT_UNAUTHORIZED para resolver problemas de certificado com Prisma
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
@@ -18,9 +19,10 @@ RUN npm install
 # RUN npx prisma generate
 
 # Copiar o restante dos arquivos do projeto
-COPY . .
+# COPY . .
+WORKDIR /usr/src/app
 
 EXPOSE 3000
 EXPOSE 5555
 
-CMD ["npm", "run", "dev"]
+# CMD ["npm", "run", "dev"]
