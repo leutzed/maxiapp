@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: ./app
+    container_name: maxiapp-backend
     volumes:
       - ./app:/usr/src/app:z
       # - ./app/node_modules:/usr/src/app/node_modules
@@ -9,6 +10,24 @@ services:
       - 3000:3000
       - 5555:5555
     command: /usr/src/app/entrypoint.sh
+    restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      # dockerfile: ./environment/Dockerfile.frontend
+    container_name: maxiapp-frontend
+    volumes:
+      - ./frontend:/usr/src/frontend:z
+    ports:
+      - "8080:8080"
+    command: /usr/src/frontend/entrypoint.sh
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: maxiapp-network
 # volumes:
 #   node_modules:

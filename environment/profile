@@ -1,3 +1,0 @@
-alias server-up="docker compose up -d"
-alias server-down="docker compose down"
-alias server-restart="server-down && server-up"
