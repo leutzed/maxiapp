@@ -1,7 +1,8 @@
 services:
   backend:
-    build:
-      context: ./app
+    # build:
+    #   context: ./app
+    image: leutzed/maxiapp-backend:latest
     container_name: maxiapp-backend
     volumes:
       - ./app:/usr/src/app:z
@@ -13,9 +14,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
+    # build:
+    #   context: ./frontend
       # dockerfile: ./environment/Dockerfile.frontend
+    image: leutzed/maxiapp-frontend:latest
     container_name: maxiapp-frontend
     volumes:
       - ./frontend:/usr/src/frontend:z
