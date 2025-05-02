@@ -2,7 +2,7 @@ services:
   backend:
     # build:
     #   context: ./app
-    image: leutzed/maxiapp-backend:latest
+    image: leutzed/maxiapp-backend:1.0
     container_name: maxiapp-backend
     volumes:
       - ./app:/usr/src/app:z
@@ -17,7 +17,7 @@ services:
     # build:
     #   context: ./frontend
       # dockerfile: ./environment/Dockerfile.frontend
-    image: leutzed/maxiapp-frontend:latest
+    image: leutzed/maxiapp-frontend:1.0
     container_name: maxiapp-frontend
     volumes:
       - ./frontend:/usr/src/frontend:z
