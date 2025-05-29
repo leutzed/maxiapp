@@ -1,35 +1,47 @@
+version: '3.8'
+
 services:
   backend:
-    # build:
-    #   context: ./app
-    image: leutzed/maxiapp-backend:1.0
-    container_name: maxiapp-backend
-    volumes:
-      - ./app:/usr/src/app:z
-      # - ./app/node_modules:/usr/src/app/node_modules
+    build:
+      context: ./app
+      dockerfile: Dockerfile
     ports:
-      - 3000:3000
-      - 5555:5555
-    command: /usr/src/app/entrypoint.sh
-    restart: unless-stopped
+      - "3000:3000"
+      - "5555:5555"
+    volumes:
+      - ./app:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    # depends_on:
+    #   - postgres
 
   frontend:
-    # build:
-    #   context: ./frontend
-      # dockerfile: ./environment/Dockerfile.frontend
-    image: leutzed/maxiapp-frontend:1.0
-    container_name: maxiapp-frontend
-    volumes:
-      - ./frontend:/usr/src/frontend:z
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    command: /usr/src/frontend/entrypoint.sh
-    depends_on:
-      - backend
-    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
 
 networks:
   default:
     name: maxiapp-network
+
+#   postgres:
+#     image: postgres:15-alpine
+#     environment:
+#       POSTGRES_DB: myapp
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
 # volumes:
-#   node_modules:
+#   postgres_data:
