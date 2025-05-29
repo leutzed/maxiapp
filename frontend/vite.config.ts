@@ -10,27 +10,27 @@ export default defineConfig({
     port: 8080,
     proxy: {
       '/auth': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true,
         secure: false,
       },
       '/athletes': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true,
         secure: false,
       },
       '/calendar': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true,
         secure: false,
       },
       '/team': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true,
         secure: false,
       },
       '/healthcheck': {
-        target: 'http://localhost:3000',
+        target: 'http://backend:3000',
         changeOrigin: true,
         secure: false,
       }

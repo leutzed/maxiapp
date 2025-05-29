@@ -55,7 +55,7 @@ const LoginForm: React.FC = () => {
           }, 300);
         } else {
           setSyncingAthletes(false);
-          setError('Falha na sincronização dos atletas. Redirecionando...');
+          setError('Athlete synchronization failed. Redirecting...');
           console.error('Athletes sync failed');
           
           // Mesmo com falha, redireciona após um tempo
@@ -66,7 +66,7 @@ const LoginForm: React.FC = () => {
       } catch (syncErr) {
         clearInterval(progressInterval);
         setSyncingAthletes(false);
-        setError('Erro durante a sincronização. Redirecionando...');
+        setError('Error during synchronization. Redirecting...');
         console.error('Error during athletes sync:', syncErr);
         
         // Mesmo com erro, redireciona após um tempo
@@ -86,7 +86,7 @@ const LoginForm: React.FC = () => {
       <div className="login-form">
         {syncingAthletes ? (
           <div className="sync-loading-container">
-            <h2>Sincronizando Atletas</h2>
+            <h2>Synchronizing Athletes</h2>
             <div className="progress-bar-container">
               <div 
                 className="progress-bar" 
@@ -99,7 +99,7 @@ const LoginForm: React.FC = () => {
               <div className="skeleton-item"></div>
               <div className="skeleton-item"></div>
             </div>
-            <p>Por favor, aguarde enquanto sincronizamos os dados...</p>
+            <p>Please wait while we synchronize the data...</p>
           </div>
         ) : (
           <>

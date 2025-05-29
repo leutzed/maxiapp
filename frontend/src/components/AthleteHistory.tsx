@@ -59,53 +59,53 @@ const AthleteHistoryComponent: React.FC<AthleteHistoryComponentProps> = ({ athle
   // Tradução dos atributos para uma versão mais amigável
   const getAttributeDisplayName = (attributeName: string) => {
     const attributeMap: Record<string, string> = {
-      age: 'Idade',
-      owner: 'Proprietário',
-      height: 'Altura',
-      weight: 'Peso',
-      form: 'Forma',
-      care: 'Cuidado',
-      experience: 'Experiência',
-      mood: 'Humor',
-      strenght: 'Força',
-      stamina: 'Resistência',
-      speed: 'Velocidade',
-      agility: 'Agilidade',
-      jump: 'Salto',
-      throw: 'Arremesso',
-      specialty1: 'Especialidade 1',
-      specialty2: 'Especialidade 2'
+      age: 'Age',
+      owner: 'Owner',
+      height: 'Height',
+      weight: 'Weight',
+      form: 'Form',
+      care: 'Care',
+      experience: 'Experience',
+      mood: 'Mood',
+      strenght: 'Strength',
+      stamina: 'Stamina',
+      speed: 'Speed',
+      agility: 'Agility',
+      jump: 'Jump',
+      throw: 'Throw',
+      specialty1: 'Specialty 1',
+      specialty2: 'Specialty 2'
     };
     
     return attributeMap[attributeName] || attributeName;
   };
 
   if (loading) {
-    return <div className="athlete-history-loading">Carregando histórico...</div>;
+    return <div className="athlete-history-loading">Loading history...</div>;
   }
 
   if (error) {
-    return <div className="athlete-history-error">Erro ao carregar histórico: {error}</div>;
+    return <div className="athlete-history-error">Failed to load history: {error}</div>;
   }
 
   if (!historyData.length) {
-    return <div className="athlete-history-empty">Nenhum histórico disponível para este atleta.</div>;
+    return <div className="athlete-history-empty">No history available for this athlete.</div>;
   }
 
   return (
     <div className="athlete-history-container">
-      <h2>Histórico de Evolução</h2>
+      <h2>Evolution history</h2>
       <div className="athlete-history-table-container">
         <table className="athlete-history-table">
           <thead>
             <tr>
-              <th>Data</th>
-              <th>Temporada</th>
-              <th>Semana</th>
-              <th>Atributo</th>
-              <th>Valor Anterior</th>
-              <th>Novo Valor</th>
-              <th>Evolução</th>
+              <th>Date</th>
+              <th>Season</th>
+              <th>Week</th>
+              <th>Attribute</th>
+              <th>Previous Value</th>
+              <th>New Value</th>
+              <th>Evolution</th>
             </tr>
           </thead>
           <tbody>
